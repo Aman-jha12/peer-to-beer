@@ -1,0 +1,61 @@
+docker run --rm -v "${PWD}:/workspace" namely/protoc-all -i /workspace/backend/src/proto -f signaling.proto -o /workspace/frontend/src/generated -l web --ts
+
+
+
+
+envoy.yaml ke liye :
+docker run -d -v ${PWD}/envoy.yaml:/etc/envoy/envoy.yaml -p 8080:8080 -p 9901:9901 envoyproxy/envoy:v1.22.0
+
+
+
+
+
+
+
+
+
+//gemini diye tha apne last response mai
+docker build -t local-grpc-gen -f generator.Dockerfile .
+
+You should see it download Alpine, install the tools, and finish successfully.
+
+### Step 3: Run the Generator (Finally!)
+
+Now use your new local image `local-grpc-gen`. Run this **PowerShell** command from the root:
+
+```powershell
+docker run --rm -v ${PWD}:/workspace local-grpc-gen `
+  -I=./peer-to-beer-backend/src/proto `
+  --js_out=import_style=commonjs:./peer-to-beer-frontend/src/generated `
+  --grpc-web_out=import_style=typescript,mode=grpcwebtext:./peer-to-beer-frontend/src/generated `
+  signaling.proto
+
+### Step 4: Verify Files
+Check `peer-to-beer-frontend/src/generated/`. You should see 4 files:
+* `signaling_pb.js`
+* `signaling_pb.d.ts`
+* `SignalingServiceClientPb.ts`
+* `signaling_grpc_web_pb.d.ts` (or similar)
+
+---
+
+### Step 5: Start the Proxy & Apps
+
+Now that the code is generated, start the system:
+
+1.  **Start Envoy Proxy** (PowerShell):
+    ```powershell
+    docker run -d -v ${PWD}/envoy.yaml:/etc/envoy/envoy.yaml -p 8080:8080 -p 9901:9901 envoyproxy/envoy:v1.22.0
+        *(Note: If you get a "port already allocated" error, run `docker ps` and `docker stop <container_id>` to clear old attempts).*
+
+2.  **Start Backend:**
+    ```bash
+    cd peer-to-beer-backend
+    npm run dev
+    
+3.  **Start Frontend:**
+    ```bash
+    cd peer-to-beer-frontend
+    npm run dev
+    
+Go to `http://localhost:5173`. It should finally work!
