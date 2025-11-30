@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package signaling;
+
+// The Signaling Service definition.
+service SignalingService {
+  // User connects to the stream to receive messages (Offers, Answers, ICE).
+  // This is a Server-Side Streaming RPC.
+  rpc JoinCall (UserRequest) returns (stream SignalingMessage) {}
+
+  // Standard Unary RPCs to send data to the server
+  rpc SendOffer (OfferRequest) returns (SuccessResponse) {}
+  rpc SendAnswer (AnswerRequest) returns (SuccessResponse) {}
+  rpc SendIceCandidate (IceCandidateRequest) returns (SuccessResponse) {}
+  rpc EndCall (UserRequest) returns (SuccessResponse) {}
+}
+
+// -- Messages --
+
+message UserRequest {
+  string userId = 1;
+}
+
+message OfferRequest {
+  string fromUserId = 1;
+  string toUserId = 2;
+  string sdp = 3; // Session Description Protocol string
+}
+
+message AnswerRequest {
+  string fromUserId = 1;
+  string toUserId = 2;
+  string sdp = 3;
+}
+
+message IceCandidateRequest {
+  string fromUserId = 1;
+  string toUserId = 2;
+  string candidate = 3; // The actual candidate string
+  string sdpMid = 4;
+  int32 sdpMLineIndex = 5;
+}
+
+message SuccessResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// The generic message sent BACK to the client via the stream
+message SignalingMessage {
+  string type = 1; // "offer", "answer", "candidate", "end"
+  string fromUserId = 2;
+  
+  // Optional fields depending on type
+  string data = 3; // SDP or Candidate string
+  
+  // Extra fields for ICE candidates
+  string sdpMid = 4;
+  int32 sdpMLineIndex = 5;
+}
