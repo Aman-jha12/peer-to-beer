@@ -14,10 +14,9 @@ docker run -d -v ${PWD}/envoy.yaml:/etc/envoy/envoy.yaml -p 8080:8080 -p 9901:99
 
 
 
-//gemini diye tha apne last response mai
+//building my own image as the open source was outdated and was not working
 docker build -t local-grpc-gen -f generator.Dockerfile .
 
-You should see it download Alpine, install the tools, and finish successfully.
 
 ### Step 3: Run the Generator (Finally!)
 
@@ -30,20 +29,14 @@ docker run --rm -v ${PWD}:/workspace local-grpc-gen `
   --grpc-web_out=import_style=typescript,mode=grpcwebtext:./peer-to-beer-frontend/src/generated `
   signaling.proto
 
-### Step 4: Verify Files
-Check `peer-to-beer-frontend/src/generated/`. You should see 4 files:
-* `signaling_pb.js`
-* `signaling_pb.d.ts`
-* `SignalingServiceClientPb.ts`
-* `signaling_grpc_web_pb.d.ts` (or similar)
+
 
 ---
 
 ### Step 5: Start the Proxy & Apps
 
-Now that the code is generated, start the system:
 
-1.  **Start Envoy Proxy** (PowerShell):
+1.  **Start Envoy Proxy** :
     ```powershell
     docker run -d -v ${PWD}/envoy.yaml:/etc/envoy/envoy.yaml -p 8080:8080 -p 9901:9901 envoyproxy/envoy:v1.22.0
         *(Note: If you get a "port already allocated" error, run `docker ps` and `docker stop <container_id>` to clear old attempts).*
